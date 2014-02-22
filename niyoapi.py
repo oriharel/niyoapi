@@ -169,7 +169,11 @@ class RoutesSummary(webapp2.RequestHandler):
             summary = route["summary"]
             logging.info('summary is %s', summary)
             duration = route["legs"][0]["duration"]["text"]
-            return {"summary": summary, "duration": duration}
+            duration_in_traffic = "duration_in_traffic not present"
+            if 'duration_in_traffic' in route["legs"][0]:
+                duration_in_traffic = route["legs"][0]["duration_in_traffic"]["text"]
+            
+            return {"summary": summary, "duration": duration, "duration_in_traffic": duration_in_traffic}
 
         noa_routes = map(extract, noaRoutes)
         noaReply['num_of_routes'] = len(noa_routes)
