@@ -1,0 +1,5 @@
+cron:
+- description: daily morning traffic report
+  url: /getRoutesSummary
+  schedule: every day 08:00
+  timezone: Asia/Jerusalem

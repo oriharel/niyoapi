@@ -169,11 +169,12 @@ class RoutesSummary(webapp2.RequestHandler):
             summary = route["summary"]
             logging.info('summary is %s', summary)
             duration = route["legs"][0]["duration"]["text"]
+            steps = route["legs"][0]["steps"]
             duration_in_traffic = "duration_in_traffic not present"
             if 'duration_in_traffic' in route["legs"][0]:
                 duration_in_traffic = route["legs"][0]["duration_in_traffic"]["text"]
             
-            return {"summary": summary, "duration": duration, "duration_in_traffic": duration_in_traffic}
+            return {"summary": summary, "duration": duration, "duration_in_traffic": duration_in_traffic, "steps": steps}
 
         noa_routes = map(extract, noaRoutes)
         noaReply['num_of_routes'] = len(noa_routes)
@@ -200,6 +201,53 @@ class RoutesSummary(webapp2.RequestHandler):
         reply.append(noaReply)
         reply.append(workReply)
         self.response.write(json.dumps(reply))
+
+        userEntryQuery = UserEntry.query(UserEntry.user_email == "ori.harel@gmail.com")
+
+        logging.info('query result is %s', userEntryQuery)
+
+        userEntry = userEntryQuery.fetch(1)
+
+        # logging.info('after user fetch. userEntry is %s', userEntry[0])
+
+        # reg_id = userEntry[0].reg_id
+        reg_id = "APA91bFORdnT8tygJPSCUIY3fwwAFTe5s-qY59sxg60tJA4J7LZH94ETGTOlBAaI4xqXqXy145KjdE8ah3ytA4Hk0wZS9kAqJI_yiymSozupdupQz_Td7uP7bG2HywXVM_ZAnqm6hQJItjnO-lp-HMxVh7fQqSI-AQ"
+
+        json_data = {"collapse_key" : "niyo-push","data" : {"Category" : "radar","Type": "traffic", "payload": reply},"registration_ids": [reg_id]}
+        apiKey = "AIzaSyDwamDrY7mp6CKS8SvWZJaerxe73i6mMqs"
+        myKey = "key=" + apiKey
+        headers = {'Content-Type': 'application/json', 'Authorization': myKey}
+
+        data = json.dumps(json_data)
+
+        url = 'https://android.googleapis.com/gcm/send'
+
+        msg = 'Everything is normal'
+
+        try:
+            req = urllib2.Request(url, data, headers)
+        except Exception as inst:
+            logging.error('Error in calling gcm %s', inst)
+            msg = 'Server raised an exception'
+
+
+        f = urllib2.urlopen(req)
+        gcmresponse = json.loads(f.read())
+        gcmresponseLog = json.dumps(gcmresponse)
+
+        logging.info('GCM response is: %s', gcmresponseLog)
+
+        if gcmresponse ['failure'] == 0:
+            msg = 'traffic report Call to GCM succeeded'
+            logging.info('Calling gcm %s', msg)
+        else:
+            msg = 'traffic Call to GCM succeeded but returned an error'
+            logging.error('Error in calling gcm %s', msg)
+
+
+
+        # self.response.headers['Content-Type'] = 'application/json'
+        # self.response.write(msg)
 
 
 
