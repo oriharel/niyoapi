@@ -3,3 +3,10 @@ cron:
   url: /getRoutesSummary
   schedule: every day 08:00
   timezone: Asia/Jerusalem
+- description: daily evening traffic report
+  url: /sendEveningTraffic
+  schedule: every day 18:00
+  timezone: Asia/Jerusalem  
+- description: next event traffic report
+  url: /sendNextEventTraffic
+  schedule: every 5 mins
